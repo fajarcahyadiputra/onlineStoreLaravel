@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Kategory;
 use App\Models\ProductCategories;
 use App\Models\ProductImage;
+use Validator;
 use DB;
 use Illuminate\Auth\Events\Validated;
 
@@ -40,7 +41,7 @@ class ProductController extends Controller
 					return $status;
 				})
 				->addColumn('img', function(Product $product){
-					return "<button  data-id='".$product->id."' id='btnProductImg' class='btn btn-primary btn-sm ml-2'><i class='fas fa-images'></i></button>";
+					return "<button  data-check='0'  data-id='".$product->id."' id='btnProductImg' class='btn btn-primary btn-sm ml-2'><i class='fas fa-images'></i></button>";
 				})
 				->addColumn('action', function(Product $data){
 					return "
@@ -66,6 +67,7 @@ class ProductController extends Controller
 					$data['productId'] = $request->input('id');
 				}else{
 					$data['data'] = $images;
+					$data['productId'] = $request->input('id');
 				}
 
 				return response()->json($data);
@@ -229,16 +231,46 @@ class ProductController extends Controller
 	}
 	public function addImg(Request $request)
 	{
-		$validate = $request->validate([
-			'productImg' => 'mimes:jpg,png,jpeg',
+		$message = [];
+		$validate = Validator::make($request->all(),[
+			'productImg' => 'required|mimes:jpg,png,jpeg',
 		]);
-		if($validate){
-			$coba['dd'] = true;
+		if($validate->passes()){
+
+		//upload img
+		$imgName = time().'-'.$request->productImg->getClientOriginalName();
+		$folder  = 'images/products';
+		$request->productImg->move(public_path($folder), $imgName);
+		
+		//insert data
+		ProductImage::insert([
+			'product_id' => $request->productId,
+			'path'		 => $folder.'/'.$imgName,
+			'created_at'  => date('Y-m-d h:i:m'),
+			'updated_at'  => date('Y-m-d h:i:m')
+		]);
+		
+		//send to view
+		$message['status'] = true;
+		$message['data']   = ProductImage::all();
+		
 		}else{
-			$coba['dd'] = false;
+			$message['status'] = false;
+			$message['data']   = $validate->errors()->all();
 		}
-		// $imgName = time().'-'.$request->productImg->getClientOriginalName();
-		// $folder  = 'images/products';
-		return response()->json($request->productImg->getClientOriginalName());
+		return response()->json($message);
+	}
+	public function deleteImg(Request $request)
+	{
+		$pesan = [];
+		$delete = ProductImage::where('id', $request->input('id'))->delete();
+		if($delete){
+			$pesan['delete'] = true;
+			unlink($request->input('img'));
+			$pesan['data']   = ProductImage::all();
+		}else{
+			$pesan['delete'] = false;
+		}
+		return response()->json($pesan);
 	}
 }

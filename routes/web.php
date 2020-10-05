@@ -39,6 +39,7 @@ Route::group(
 
 		//product Img
 		Route::post('product/addImg','ProductController@addImg')->name('product.addImg');
+		Route::get('product/deleteImg','ProductController@deleteImg')->name('product.deleteImg');
 	}
 );
 
