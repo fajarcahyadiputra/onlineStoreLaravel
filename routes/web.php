@@ -40,6 +40,20 @@ Route::group(
 		//product Img
 		Route::post('product/addImg','ProductController@addImg')->name('product.addImg');
 		Route::get('product/deleteImg','ProductController@deleteImg')->name('product.deleteImg');
+
+		//atribute
+		Route::get('attribute','AttributeController@index')->name('attribute.index');
+		Route::get('attribute/pageAdd','AttributeController@pageCreate')->name('attribute.pageAdd');
+		Route::post('attribute/addData','AttributeController@store')->name('attribute.addData');
+		Route::get('attribute/pageEditData/{id}','AttributeController@edit')->name('attribute/pageEditData');
+		Route::post('attribute/update','AttributeController@update')->name('attribute.editData');
+		Route::get('attribute/remove','AttributeController@remove')->name('attribute.remove');
+
+		//options Attribute
+		Route::get('attribute/options','AttributeController@attributeOptions')->name('attribute.options');
+		Route::post('attribute/AddOptions','AttributeController@addOptions')->name('attribute.addOptions');
+		Route::get('attribute/removeOptions','AttributeController@removeOptions')->name('attribute.removeOptions');
+		Route::post('attribute/editOptions','AttributeController@editOptions')->name('attribute.editOptions');
 	}
 );
 

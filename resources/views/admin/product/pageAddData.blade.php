@@ -12,58 +12,67 @@
 			<div class="card-body">
 				<form id="formAddProduct" name="formAddProduct">
 					@csrf
-					<div class="form-group">
-						<label for="sku">SKU</label>
-						<input required="" type="text" name="sku" readonly="" class="form-control" id="sku" value="{{$sku}}">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="sku">SKU</label>
+								<input required="" type="text" name="sku" readonly="" class="form-control" id="sku" value="{{$sku}}">
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="name">Name</label>
+								<input   type="text" name="name" class="form-control" id="name">
+							</div>
+						</div>
 					</div>
-					<div class="form-group">
-						<label for="name">Name</label>
-						<input   type="text" name="name" class="form-control" id="name">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label id="statues">Statues</label>
+								<select name="statues" class="form-control" id="statues">
+									<option value="" disabled="" selected="" hidden="">Select Statues</option>
+									@foreach($statues as $index => $st)
+										<option value="{{$index}}">{{$st}}</option>
+									@endforeach
+								</select>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="category">Category</label>
+								<select multiple="multiple" required name="categories[]" class="form-control" id="categories">
+									@foreach($categories as $ct)
+										<option value="{{$ct->id}}">{{$ct->name}}</>
+									@endforeach
+								</select>
+							</div>
+						</div>
 					</div>
-					<div class="form-group">
-						<label for="price">Price</label>
-						<input required type="number" name="price" class="form-control" id="price">
+					<div class="row">
+						<div class="col-md-6">
+							<div class="form-group">
+								<label for="shortDescription">Short Description</label>
+								<textarea name="shortDescription" name="description" id="shortDescription" rows="3" class="form-control"></textarea>
+							</div>
+						</div>
+						<div class="col-6">
+							<div class="form-group">
+								<label for="description">Description</label>
+								<textarea name="description" name="description" id="description" rows="3" class="form-control"></textarea>
+							</div>
+						</div>
 					</div>
-					<div class="form-group">
-						<label for="category">Category</label>
-						<select multiple="multiple" required name="categories[]" class="form-control" id="categories">
-							@foreach($categories as $ct)
-								<option value="{{$ct->id}}">{{$ct->name}}</>
-							@endforeach
-						</select>
+					<div class="row">
+						<div class="col-md-6">
+
+						</div>
+						<div class="col-md-6" style="display: flex; justify-content: flex-end">
+							<button type="button" id="AddproductVarian" class="btn btn-primary"><i class="fas fa-plus mr-2"></i>Add Detail</button>
+						</div>
 					</div>
-					<div class="form-group">
-						<label for="shortDescription">Short Description</label>
-						<textarea name="shortDescription" name="description" id="shortDescription" rows="2" class="form-control"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="description">Description</label>
-						<textarea name="description" name="description" id="description" rows="4" class="form-control"></textarea>
-					</div>
-					<div class="form-group">
-						<label for="weight">Weight</label>
-						<input required type="number" step="0.1" name="weight" class="form-control" id="weight">
-					</div>
-					<div class="form-group">
-						<label for="length">Length</label>
-						<input  type="number" step="0.1" name="length" class="form-control" id="length">
-					</div>
-					<div class="form-group">
-						<label for="width">Width</label>
-						<input  type="number" step="0.1" name="width" class="form-control" id="width">
-					</div>
-					<div class="form-group">
-						<label for="height">Height</label>
-						<input  type="number" step="0.1" name="height" class="form-control" id="height">
-					</div>
-					<div class="form-group">
-						<label id="statues">Statues</label>
-						<select name="statues" class="form-control" id="statues">
-							<option value="" disabled="" selected="" hidden="">Select Statues</option>
-							@foreach($statues as $index => $st)
-								<option value="{{$index}}">{{$st}}</option>
-							@endforeach
-						</select>
+					<div class="detailForm">
+						@include('admin.product.partial.formAdd',['data' => $attribute,'indexDetail' => 1])
 					</div>
 					<button style="width: 100px"  type="submit" class="btn btn-success">Add</button>
 					<a style="width: 100px" href="{{URL::to('product')}}"  class="btn btn-warning">Back</a>
@@ -126,6 +135,106 @@
 			})
 		
 		})
+	//ajax to get attribute option
+	$(document).on('change','#attribute_id', function(){
+		const attribute_id = $(this).val();
+		let indexParent = $(this).data('indexparent');
+		let indexVariant = $(this).data('indexvariant');
+		alert(indexVariant)
+		$.ajax({
+			url: "{{route('product.halAddData')}}",
+			data:{
+				getAttributeOption: true,
+				attribute_id 	  : attribute_id
+			},
+			dataType: 'JSON',
+			method: 'GET',
+			success: function(result){
+				$(`#attribute_option_id${indexParent}${indexVariant}`).html(``)
+				$(`#attribute_option_id${indexParent}${indexVariant}`).append(`<option value="" selected disabled hidden>Select Attribute Option</option>`)
+				result.map((data=>{
+					$(`#attribute_option_id${indexParent}${indexVariant}`).append(`<option value="${data.id}">${data.name}</option>`)
+				}))
+			}
+		})
+	})
+
+	//ajx for add form varian
+	var indexDetailAdd = 1;
+	$(document).on('click','#AddproductVarian', function(){
+		indexDetailAdd++
+		$.ajax({
+			url: "{{route('product.halAddData')}}",
+			data:{
+				addFormDetail: true,
+				indexVarianAdd: indexDetailAdd
+			},
+			dataType: 'HTML',
+			type: 'GET',
+			success: function(result){
+				$('.detailForm').append(`
+				<div class="penampungFormDetail${indexDetailAdd}">
+				<hr>
+				<div class="row">
+					<div class="col-md-6">
+					</div>
+					<div class="col-md-6" style="display: flex; justify-content: flex-end">
+						<button  type="button" data-indexvarianremove="${indexDetailAdd}" id="removeProductVarian" class="btn btn-danger"><i class="fas fa-minus-square mr-2"></i>Remove Detail</button>
+					</div>
+				</div>`+result+'</div>');
+
+			}
+		})
+	})
+
+	//ajax to remove form varian
+	$(document).on('click','#removeProductVarian', function(){
+		let indexvarianremove = $(this).data('indexvarianremove')
+		
+		$.ajax({
+			url: "{{route('product.halAddData')}}",
+			data:{
+				removeFormVarian: true,
+				indexvarianremove: indexvarianremove
+			},
+			dataType: 'JSON',
+			type: 'GET',
+			success: function(result){
+				$('.penampungFormDetail'+result).remove()
+			}
+		})
+	})
+
+	//ajax to add variant product form
+	var indexVariant = 1;
+	$(document).on('click','#btnAddVariantProduct', function(){
+		const indexParent = $(this).data('parentindex');
+		indexVariant++
+		
+		$.ajax({
+			url: "{{route('product.halAddData')}}",
+			data:{
+				addFormVariant: true,
+				indexParent  : indexParent,
+				indexVariant: indexVariant
+			},
+			dataType: 'HTML',
+			type: 'GET',
+			success: function(result){
+				// console.log(result)
+				$(`.variantForm${indexParent}`).append(`
+				<div class="penampungFormVariant${indexParent}${indexVariant}">
+				`+result+'</div>');
+			}
+		})
+	})
+
+	$(document).on('click','#btn-remove-variant', function(){
+		const indexParent = $(this).data('indexparent');
+		const indexVariant = $(this).data('indexvariant');
+		$(`.penampungFormVariant${indexParent}${indexVariant}`).remove();
+	})
+
 	})
 </script>
 @endsection

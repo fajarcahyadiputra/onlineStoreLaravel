@@ -7,8 +7,12 @@ use yajra\DataTables\Datatables;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Kategory;
+use App\Models\Attribute;
+use App\Models\AttributeOption;
 use App\Models\ProductCategories;
 use App\Models\ProductImage;
+use App\Models\AttributeProduct;
+use App\Models\DetailProduct;
 use Validator;
 use DB;
 use Illuminate\Auth\Events\Validated;
@@ -76,10 +80,39 @@ class ProductController extends Controller
 		$product = Product::all();
 		return view('admin.product.index', compact('product'));
 	}
-	public function halAddData()
+	public function halAddData(Request $request)
 	{
+		$statues = $this->statues;
+		$categories = Kategory::all();
+		$attribute = Attribute::all();
+
+		if($request->ajax()){
+			if($request->input('getAttributeOption')){
+				$attrOption = AttributeOption::where('attribute_id', $request->input('attribute_id'))->get();
+				return response()->json($attrOption);
+			}
+
+			//add form detail
+			if($request->input('addFormDetail')){
+				$indexDetail = $request->input('indexVarianAdd');
+				return view('admin.product.partial.formAdd',compact('indexDetail','attribute'));
+			}
+
+			//remove form detail
+			if($request->input('removeFormVarian')){
+				$indexVarianRemove = $request->input('indexvarianremove');
+				return response()->json($indexVarianRemove++);
+			}
+
+			//add form variat
+			if($request->input('addFormVariant')){
+				$indexVariant = $request->input('indexVariant');
+				$indexParent = $request->input('indexParent');
+				return view('admin.product.partial.variantForm',compact('indexVariant','attribute','indexParent'));
+			}
+
+		}
 		$kode = Product::select(DB::raw('MAX(RIGHT(sku, 6)) as kodeMAx'));
-		// dd($kode->count());
 		if ($kode->count() > 0) {
 			foreach ($kode->get() as $k) {
 				$tmp = ((int) $k->kodeMAx) + 1;
@@ -88,10 +121,8 @@ class ProductController extends Controller
 		}else{
 			$sku = 'AK000001';
 		}
-		$statues = $this->statues;
-		$categories = Kategory::all();
 
-		return view('admin.product.pageAddData',compact('statues','categories','sku'));
+		return view('admin.product.pageAddData',compact('statues','categories','sku','attribute'));
 	}
 	public function store(Request $request)
 	{
@@ -99,9 +130,7 @@ class ProductController extends Controller
 		$validator = $request->validate([
 			'sku' => 'required',
 			'name' => 'required',
-			'price' => 'required',
 			'categories' => 'required',
-			'height' => 'required',
 			'statues' => 'required'
 		]);
 		
@@ -110,11 +139,6 @@ class ProductController extends Controller
 		$product->user_id = Auth()->user()->id;
 		$product->name = $request->name;
 		$product->slug = \Str::slug($request->name);
-		$product->price = $request->price;
-		$product->weight = $request->weight;
-		$product->length = $request->length;
-		$product->width = $request->width;
-		$product->height = $request->height;
 		$product->short_description = $request->shortDescription;
 		$product->description = $request->description;
 		$product->status = $request->statues;
@@ -129,6 +153,35 @@ class ProductController extends Controller
 					'updated_at'  => date('Y-m-d h:i:m'),
 				]);
 			}
+
+			foreach($request->detail as $index => $dt){
+
+				$inventory_id = DB::table('tb_product_invetories')->insertGetId([
+					'product_id' => $product->id,
+					'qty'		 => $dt['stok']
+				]);
+
+				$detail = new DetailProduct();
+				$detail->product_id = $product->id;
+				$detail->inventory_id = $inventory_id;
+				$detail->price  = $dt['price'];
+				$detail->sub_sku  = $request->sku.'-'.$index;
+				$detail->weight  = $dt['weight'];
+				$detail->height  = $dt['height'];
+				$detail->width  = $dt['height'];
+				$detail->length  = $dt['length'];
+				$detail->save();
+
+				foreach($dt['attribute'] as $at){
+					$attribute = new AttributeProduct();
+					$attribute->detail_product_id = $detail->id;
+					$attribute->attribute = $at['attribute_id'];
+					$attribute->attribute_value = $at['attribute_option_id'];
+					$attribute->save();
+				}
+
+			}
+
 			$pesan['insert'] = true;
 		}else{
 			$pesan['insert'] = false;

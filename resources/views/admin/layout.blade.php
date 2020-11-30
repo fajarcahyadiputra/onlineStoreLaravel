@@ -58,28 +58,18 @@
           <h6 class="collapse-header">Data Master</h6>
           <a class="collapse-item" href="{{route('master.category')}}">Category</a>
           <a class="collapse-item" href="{{route('product.index')}}">Product</a>
-          <a class="collapse-item" href="dropdowns.html">Dropdowns</a>
-          <a class="collapse-item" href="modals.html">Modals</a>
-          <a class="collapse-item" href="popovers.html">Popovers</a>
-          <a class="collapse-item" href="progress-bar.html">Progress Bars</a>
+          <a class="collapse-item" href="{{route('attribute.index')}}">Attribute</a>
         </div>
       </div>
     </li>
     <hr class="sidebar-divider">
 
-    <li class="nav-item">
-      <a class="nav-link" href="">
-       <i class="fas fa-tasks"></i>
-       <span>Data Barang</span></a>
-     </li>
-     <hr class="sidebar-divider">
-
-     <li class="nav-item">
+     {{-- <li class="nav-item">
       <a class="nav-link" href="">
        <i class="fas fa-tasks"></i>
        <span>Barang Keluar</span></a>
      </li>
-     <hr class="sidebar-divider">
+     <hr class="sidebar-divider"> --}}
 
      <hr class="sidebar-divider">
 

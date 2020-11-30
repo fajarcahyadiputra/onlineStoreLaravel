@@ -139,7 +139,7 @@
 					'id': id
 				},
 				success: function(result){
-					console.log(result)
+
 					if(result.delete === true){
 						Swal.fire(
 						'Success',
